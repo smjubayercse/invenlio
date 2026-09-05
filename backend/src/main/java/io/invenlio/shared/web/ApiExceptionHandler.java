@@ -1,0 +1,9 @@
+package io.invenlio.shared.web;
+import io.invenlio.organization.*; import jakarta.servlet.http.HttpServletRequest; import java.net.URI; import org.slf4j.MDC; import org.springframework.dao.OptimisticLockingFailureException; import org.springframework.http.*; import org.springframework.web.bind.MethodArgumentNotValidException; import org.springframework.web.bind.annotation.*;
+@RestControllerAdvice class ApiExceptionHandler {
+ @ExceptionHandler({AccessDeniedException.class,TenantContextMissingException.class}) ResponseEntity<ProblemDetail> denied(RuntimeException e,HttpServletRequest r){return problem(HttpStatus.FORBIDDEN,"permission-denied",e.getMessage(),r);}
+ @ExceptionHandler(NotFoundException.class) ResponseEntity<ProblemDetail> missing(RuntimeException e,HttpServletRequest r){return problem(HttpStatus.NOT_FOUND,"not-found",e.getMessage(),r);}
+ @ExceptionHandler({StaleStateException.class,OptimisticLockingFailureException.class}) ResponseEntity<ProblemDetail> stale(Exception e,HttpServletRequest r){return problem(HttpStatus.CONFLICT,"stale-update","Resource was modified by another request",r);}
+ @ExceptionHandler({InvalidOperationException.class,IllegalArgumentException.class,MethodArgumentNotValidException.class}) ResponseEntity<ProblemDetail> invalid(Exception e,HttpServletRequest r){return problem(HttpStatus.BAD_REQUEST,"invalid-request","Request violates a business or validation rule",r);}
+ private ResponseEntity<ProblemDetail> problem(HttpStatus status,String code,String detail,HttpServletRequest request){var p=ProblemDetail.forStatusAndDetail(status,detail);p.setType(URI.create("https://invenlio.io/problems/"+code));p.setTitle(status.getReasonPhrase());p.setInstance(URI.create(request.getRequestURI()));p.setProperty("code",code);p.setProperty("correlationId",MDC.get("correlationId"));return ResponseEntity.status(status).contentType(MediaType.APPLICATION_PROBLEM_JSON).body(p);}
+}

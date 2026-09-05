@@ -1,0 +1,14 @@
+spring:
+  jpa:
+    hibernate:
+      ddl-auto: validate
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: http://issuer.invenlio.test
+          jwk-set-uri: http://localhost.invalid/jwks
+invenlio:
+  security:
+    jwt:
+      audience: invenlio-api

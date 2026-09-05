@@ -1,0 +1,24 @@
+spring:
+  datasource:
+    url: ${DATABASE_URL:jdbc:postgresql://localhost:5432/invenlio}
+    username: ${DATABASE_USERNAME:invenlio}
+    password: ${DATABASE_PASSWORD:local-development-only}
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: ${OIDC_ISSUER_URI:http://localhost:8081/realms/invenlio}
+          jwk-set-uri: ${OIDC_JWK_SET_URI:http://localhost:8081/realms/invenlio/protocol/openid-connect/certs}
+invenlio:
+  security:
+    jwt:
+      audience: ${OIDC_AUDIENCE:invenlio-api}
+logging:
+  pattern:
+    level: "%5p [correlationId=%X{correlationId:-}]"
