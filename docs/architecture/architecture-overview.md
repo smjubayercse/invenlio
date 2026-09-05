@@ -22,11 +22,14 @@ flowchart LR
     Org[Organization]
     Identity[Identity]
     Catalog[Catalog master data]
+    Warehouse[Warehouse topology]
     Future[Future bounded modules]
   end
 ```
 
 Catalog is the first commercial module. It owns products, variants/SKUs, options, categories, brands, barcodes and physical master data. It deliberately contains no inventory or warehouse quantity state.
+
+Warehouse independently owns physical warehouses, zones and location hierarchy. It contains capacity metadata but no occupancy, product reference or inventory quantity.
 
 The initial executable contains only `shared`, `organization`, and `identity`. Candidate future bounded contexts include catalog/products and variants; customers; suppliers/purchasing; warehouses/zones/bins; immutable inventory ledger/reservations/transfers/counting; receiving/put-away; sales orders/allocation; picking/waves/packing/shipping; returns; invoicing/EU VAT; portals; integrations/webhooks/notifications; analytics and forecasting. Their final boundaries must be discovered and recorded, not inferred from this list.
 

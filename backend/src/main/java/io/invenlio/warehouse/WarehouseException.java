@@ -1,0 +1,1 @@
+package io.invenlio.warehouse; public class WarehouseException extends RuntimeException{private final String code;WarehouseException(String c,String m){super(m);code=c;}public String code(){return code;}}

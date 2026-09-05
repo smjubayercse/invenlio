@@ -11,3 +11,4 @@
 - [ADR-009: Application authorization and tenant memberships](ADR-009-application-authorization.md)
 - [ADR-010: Product/variant catalog model](ADR-010-product-variant-catalog-model.md)
 - [ADR-011: Catalog identifiers and barcodes](ADR-011-catalog-identifiers-and-barcodes.md)
+- [ADR-012: Warehouse topology and location hierarchy](ADR-012-warehouse-topology-location-hierarchy.md)

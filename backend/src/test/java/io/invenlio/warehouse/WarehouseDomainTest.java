@@ -1,0 +1,15 @@
+package io.invenlio.warehouse;import java.util.*;import org.junit.jupiter.api.*;import static org.junit.jupiter.api.Assertions.*;
+class WarehouseDomainTest{
+ @Test void validWarehouse(){var w=w();assertEquals("VIE-01",w.code);assertEquals(Warehouse.Status.DRAFT,w.status);}@Test void invalidCode(){assertThrows(WarehouseException.class,()->new Warehouse(UUID.randomUUID(),"bad code!","Name","UTC",null,null,null,null,null,"AT"));}@Test void invalidTimezone(){assertThrows(WarehouseException.class,()->new Warehouse(UUID.randomUUID(),"A","Name","Mars/Base",null,null,null,null,null,"AT"));}
+ @Test void lifecycle(){var w=w();w.transition(Warehouse.Status.ACTIVE,0);w.transition(Warehouse.Status.INACTIVE,0);w.transition(Warehouse.Status.ARCHIVED,0);assertThrows(WarehouseException.class,()->w.transition(Warehouse.Status.ACTIVE,0));}
+ @Test void codeImmutableAfterActivation(){var w=w();w.transition(Warehouse.Status.ACTIVE,0);assertThrows(WarehouseException.class,()->w.update("NEW","Name","UTC",null,null,null,null,null,"AT",0));}
+ @Test void warehouseUpdateIncludesAddress(){var w=w();w.update("VIE-01","New","UTC","Street",null,"1010","Vienna",null,"AT",0);assertEquals("Street",w.line1);assertEquals("Vienna",w.city);}
+ @Test void staleUpdate(){assertThrows(WarehouseException.class,()->w().update("VIE-01","Name","UTC",null,null,null,null,null,"AT",9));}
+ @Test void zoneUpdateAndArchive(){var z=new WarehouseZone(UUID.randomUUID(),UUID.randomUUID(),"Z","Zone",WarehouseZone.Type.STORAGE,0);z.update("Z2","New",WarehouseZone.Type.PICKING,2,0);assertEquals("Z2",z.code);z.archive(0);assertThrows(WarehouseException.class,()->z.update("Z","Zone",WarehouseZone.Type.STORAGE,0,0));}
+ @Test void staleZoneUpdate(){var z=new WarehouseZone(UUID.randomUUID(),UUID.randomUUID(),"Z","Zone",WarehouseZone.Type.STORAGE,0);assertThrows(WarehouseException.class,()->z.archive(4));}
+ @Test void locationNormalizesCodes(){var l=l();assertEquals("BIN-1",l.code);assertEquals("LOC-1",l.scanCode);}@Test void selfParentRejected(){var l=l();assertThrows(WarehouseException.class,()->l.move(l.id,0));}
+ @Test void blockingLifecycle(){var l=l();l.block(0);assertEquals(StorageLocation.Status.BLOCKED,l.status);assertThrows(WarehouseException.class,()->l.block(0));l.unblock(0);assertEquals(StorageLocation.Status.ACTIVE,l.status);}
+ @Test void locationUpdatePreservesStableIdentity(){var l=l();l.update(l.zoneId,"Changed",StorageLocation.Type.SHELF,3,10L,20L,1,30L,40L,50L,0);assertEquals("BIN-1",l.code);assertEquals("LOC-1",l.scanCode);assertEquals(50L,l.height);}
+ @Test void negativeCapacityRejected(){assertThrows(WarehouseException.class,()->new StorageLocation(UUID.randomUUID(),UUID.randomUUID(),UUID.randomUUID(),null,"B","B",StorageLocation.Type.BIN,0,"S",-1L,null,null,null,null,null));}
+ private Warehouse w(){return new Warehouse(UUID.randomUUID()," vie-01 ","Vienna","Europe/Vienna",null,null,null,null,null,"at");}private StorageLocation l(){return new StorageLocation(UUID.randomUUID(),UUID.randomUUID(),UUID.randomUUID(),null," bin-1 ","Bin",StorageLocation.Type.BIN,1," loc-1 ",null,null,null,null,null,null);}
+}
