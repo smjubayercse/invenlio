@@ -1,0 +1,7 @@
+package io.invenlio.catalog;
+import jakarta.servlet.http.HttpServletRequest;import java.net.URI;import java.util.Set;import org.slf4j.MDC;import org.springframework.http.*;import org.springframework.web.bind.annotation.*;
+@RestControllerAdvice class CatalogExceptionHandler {
+ @ExceptionHandler(CatalogNotFoundException.class) ResponseEntity<ProblemDetail> missing(CatalogNotFoundException e,HttpServletRequest r){return problem(HttpStatus.NOT_FOUND,e.code(),e.getMessage(),r);}
+ @ExceptionHandler(CatalogException.class) ResponseEntity<ProblemDetail> invalid(CatalogException e,HttpServletRequest r){var conflict=Set.of("SKU_ALREADY_EXISTS","BARCODE_ALREADY_EXISTS","OPTION_COMBINATION_ALREADY_EXISTS","CONCURRENT_MODIFICATION","CATEGORY_ALREADY_EXISTS","BRAND_ALREADY_EXISTS").contains(e.code());return problem(conflict?HttpStatus.CONFLICT:HttpStatus.BAD_REQUEST,e.code(),e.getMessage(),r);}
+ private ResponseEntity<ProblemDetail> problem(HttpStatus status,String code,String detail,HttpServletRequest request){var p=ProblemDetail.forStatusAndDetail(status,detail);p.setType(URI.create("https://invenlio.io/problems/"+code.toLowerCase().replace('_','-')));p.setTitle(status.getReasonPhrase());p.setInstance(URI.create(request.getRequestURI()));p.setProperty("code",code);p.setProperty("correlationId",MDC.get("correlationId"));return ResponseEntity.status(status).contentType(MediaType.APPLICATION_PROBLEM_JSON).body(p);}
+}

@@ -1,0 +1,2 @@
+package io.invenlio.catalog;
+public enum UnitOfMeasure { EA("Each"),KGM("Kilogram"),GRM("Gram"),LTR("Litre"),MLT("Millilitre"),MTR("Metre"),CMT("Centimetre"),BX("Box"),PK("Pack"),PF("Pallet"); private final String label; UnitOfMeasure(String l){label=l;} public String label(){return label;} public static UnitOfMeasure parse(String code){try{return valueOf(code.trim().toUpperCase());}catch(Exception e){throw new CatalogException("INVALID_UNIT_OF_MEASURE","Unsupported base unit");}} }

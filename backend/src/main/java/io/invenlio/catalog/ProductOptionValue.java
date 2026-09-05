@@ -1,0 +1,3 @@
+package io.invenlio.catalog;
+import jakarta.persistence.*; import java.util.*;
+@Entity @Table(name="catalog_product_option_values") class ProductOptionValue {@Id UUID id;@Column(name="tenant_id")UUID tenantId;@Column(name="product_id")UUID productId;@Column(name="option_id")UUID optionId;String value;@Column(name="normalized_value")String normalizedValue;int position;protected ProductOptionValue(){}ProductOptionValue(UUID t,UUID p,UUID o,String v,int pos){id=UUID.randomUUID();tenantId=t;productId=p;optionId=o;value=CatalogRules.required(v,"option value",80);normalizedValue=CatalogRules.normalized(value);position=pos;}}

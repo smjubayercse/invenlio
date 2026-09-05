@@ -27,7 +27,7 @@ class PostgreSqlIntegrationTest {
     @Test
     void applicationStartsAgainstMigratedPostgreSql() {
         assertThat(POSTGRES.isRunning()).isTrue();
-        assertThat(flyway.info().current().getVersion().getVersion()).isEqualTo("2");
+        assertThat(flyway.info().current().getVersion().getVersion()).isEqualTo("3");
         assertThat(jdbc.queryForObject("SELECT schema_generation FROM foundation_metadata WHERE id = 1", Integer.class))
                 .isEqualTo(1);
     }

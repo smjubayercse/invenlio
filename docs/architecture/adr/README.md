@@ -9,3 +9,5 @@
 - [ADR-007: API versioning and error model](ADR-007-api-versioning-error-model.md)
 - [ADR-008: Identifier strategy](ADR-008-identifier-strategy.md)
 - [ADR-009: Application authorization and tenant memberships](ADR-009-application-authorization.md)
+- [ADR-010: Product/variant catalog model](ADR-010-product-variant-catalog-model.md)
+- [ADR-011: Catalog identifiers and barcodes](ADR-011-catalog-identifiers-and-barcodes.md)

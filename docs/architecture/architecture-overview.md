@@ -21,9 +21,12 @@ flowchart LR
     Shared[Shared kernel]
     Org[Organization]
     Identity[Identity]
+    Catalog[Catalog master data]
     Future[Future bounded modules]
   end
 ```
+
+Catalog is the first commercial module. It owns products, variants/SKUs, options, categories, brands, barcodes and physical master data. It deliberately contains no inventory or warehouse quantity state.
 
 The initial executable contains only `shared`, `organization`, and `identity`. Candidate future bounded contexts include catalog/products and variants; customers; suppliers/purchasing; warehouses/zones/bins; immutable inventory ledger/reservations/transfers/counting; receiving/put-away; sales orders/allocation; picking/waves/packing/shipping; returns; invoicing/EU VAT; portals; integrations/webhooks/notifications; analytics and forecasting. Their final boundaries must be discovered and recorded, not inferred from this list.
 
@@ -60,4 +63,3 @@ Actuator exposes only health, info, and Prometheus endpoints. Liveness indicates
 ## Scalability and extraction
 
 Scale the stateless monolith horizontally first, tune database queries/indexes, isolate expensive workloads asynchronously, and partition data only from measured need. Extract a module only when it has a stable boundary and at least one concrete driver: independent scaling or availability, separate release cadence/ownership, isolation/compliance needs, incompatible technology, or sustained operational contention. Before extraction, prove contract ownership, remove database joins, introduce reliable event delivery, define failure semantics, and quantify the added operational cost.
-
