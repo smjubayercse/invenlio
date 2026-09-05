@@ -1,0 +1,1 @@
+package io.invenlio.inventory;import java.util.UUID;public final class TraceabilityEvents{private TraceabilityEvents(){}public record LotCreated(UUID tenantId,UUID lotId,UUID variantId){}public record SerialCreated(UUID tenantId,UUID serialId,UUID variantId){}}

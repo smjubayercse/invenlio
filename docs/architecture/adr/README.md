@@ -13,3 +13,4 @@
 - [ADR-011: Catalog identifiers and barcodes](ADR-011-catalog-identifiers-and-barcodes.md)
 - [ADR-012: Warehouse topology and location hierarchy](ADR-012-warehouse-topology-location-hierarchy.md)
 - [ADR-013: Immutable inventory ledger and balance projection](ADR-013-immutable-inventory-ledger-and-balance-projection.md)
+- [ADR-014: Inventory traceability dimensions](ADR-014-inventory-traceability-dimensions.md)
