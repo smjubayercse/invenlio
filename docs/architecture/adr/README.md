@@ -12,3 +12,4 @@
 - [ADR-010: Product/variant catalog model](ADR-010-product-variant-catalog-model.md)
 - [ADR-011: Catalog identifiers and barcodes](ADR-011-catalog-identifiers-and-barcodes.md)
 - [ADR-012: Warehouse topology and location hierarchy](ADR-012-warehouse-topology-location-hierarchy.md)
+- [ADR-013: Immutable inventory ledger and balance projection](ADR-013-immutable-inventory-ledger-and-balance-projection.md)

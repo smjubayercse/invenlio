@@ -29,4 +29,9 @@ INSERT INTO role_permissions(tenant_id,role_id,permission_key) VALUES
 ('11111111-1111-4111-8111-111111111111','dddddddd-dddd-4ddd-8ddd-dddddddddddd','warehouse-location:read'),
 ('11111111-1111-4111-8111-111111111111','eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee','warehouse:read'),
 ('11111111-1111-4111-8111-111111111111','eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee','warehouse-location:read') ON CONFLICT DO NOTHING;
+INSERT INTO role_permissions(tenant_id,role_id,permission_key) VALUES
+('11111111-1111-4111-8111-111111111111','dddddddd-dddd-4ddd-8ddd-dddddddddddd','inventory:read'),
+('11111111-1111-4111-8111-111111111111','dddddddd-dddd-4ddd-8ddd-dddddddddddd','inventory-ledger:read'),
+('11111111-1111-4111-8111-111111111111','eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee','inventory:read'),
+('11111111-1111-4111-8111-111111111111','eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee','inventory-ledger:read') ON CONFLICT DO NOTHING;
 INSERT INTO membership_roles(tenant_id,membership_id,role_id) VALUES ('11111111-1111-4111-8111-111111111111','bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb','cccccccc-cccc-4ccc-8ccc-cccccccccccc') ON CONFLICT DO NOTHING;
