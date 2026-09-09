@@ -1,0 +1,1 @@
+package io.invenlio.inventory;import java.util.UUID;public final class ReservationEvents{private ReservationEvents(){}public record InventoryReserved(UUID tenantId,UUID reservationId,String referenceId){}public record InventoryReservationReleased(UUID tenantId,UUID reservationId){}public record InventoryReservationExpired(UUID tenantId,UUID reservationId){}}
