@@ -16,3 +16,4 @@
 - [ADR-014: Inventory traceability dimensions](ADR-014-inventory-traceability-dimensions.md)
 - [ADR-019: Sales-order allocation through Inventory reservations](ADR-019-sales-order-allocation-through-inventory-reservations.md)
 - [ADR-020: Picking and packing ownership](ADR-020-picking-and-packing.md)
+- [ADR-021: Shipping dispatch removes physical inventory](ADR-021-shipping-dispatch-removes-physical-inventory.md)

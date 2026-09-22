@@ -38,6 +38,8 @@ Sales owns Customers, Sales Orders, commercial snapshots and reservation-backed 
 
 Fulfillment owns pick lists, pick tasks, packing sessions and packages. It consumes published Sales, Inventory and Warehouse APIs. Inventory owns the atomic reservation consumption and paired physical relocation to packing; Sales owns the separate fulfillment projection. Packing structures stock already at the packing location without changing on-hand. See ADR-020 and `docs/domain/picking-and-packing.md`.
 
+Fulfillment also owns draft and dispatched Shipments. A dispatch derives its stock dimensions from sealed package contents and invokes Inventory's governed outbound posting in the same transaction. Inventory removes on-hand at the packing location with immutable negative ledger history; Sales advances shipped quantities and completes fully shipped orders. See ADR-021 and `docs/domain/shipping.md`.
+
 The initial executable contains only `shared`, `organization`, and `identity`. Candidate future bounded contexts include catalog/products and variants; customers; suppliers/purchasing; warehouses/zones/bins; immutable inventory ledger/reservations/transfers/counting; receiving/put-away; sales orders/allocation; picking/waves/packing/shipping; returns; invoicing/EU VAT; portals; integrations/webhooks/notifications; analytics and forecasting. Their final boundaries must be discovered and recorded, not inferred from this list.
 
 ## Deployment direction

@@ -7,6 +7,8 @@ import java.security.MessageDigest;
 import java.sql.Timestamp;
 import java.time.Instant;
 import java.util.Collection;
+import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HexFormat;
 import java.util.List;
 import java.util.UUID;
@@ -18,6 +20,73 @@ import org.springframework.transaction.annotation.Transactional;
 class InventoryFulfillmentService implements InventoryFulfillment {
     private final JdbcTemplate db;
     private final WarehouseAvailability warehouses;
+
+    @Override
+    @Transactional
+    public UUID dispatch(UUID tenant, String subject, UUID shipmentId, List<DispatchItem> items) {
+        if (items == null || items.isEmpty()) throw error("SHIPMENT_ITEMS_REQUIRED");
+        String key = "shipment:" + shipmentId;
+        List<DispatchItem> ordered = new ArrayList<>(items);
+        ordered.sort(Comparator.comparing(x -> x.variantId()+":"+x.warehouseId()+":"+
+            x.packingLocationId()+":"+x.lotId()+":"+x.serialId()+":"+x.packageItemId()));
+        String requestFingerprint = fingerprintDispatch(ordered);
+        db.queryForObject("SELECT pg_advisory_xact_lock(hashtextextended(?,0))", Object.class,
+            tenant + ":inventory-idem:" + key);
+        var previous = db.query("SELECT id,request_fingerprint FROM inventory_movements WHERE tenant_id=? AND idempotency_key=?",
+            (rs, n) -> java.util.Map.entry((UUID) rs.getObject(1), rs.getString(2)), tenant, key);
+        if (!previous.isEmpty()) {
+            if (!previous.getFirst().getValue().equals(requestFingerprint))
+                throw error("SHIPMENT_DISPATCH_CONTENT_CHANGED");
+            return previous.getFirst().getKey();
+        }
+        for (DispatchItem item : ordered) {
+            if (item.quantity() == null || item.quantity().signum() <= 0 || item.quantity().scale() > 6)
+                throw error("INVALID_SHIPMENT_QUANTITY");
+            var location = warehouses.findUsableLocation(tenant, item.warehouseId(), item.packingLocationId())
+                .orElseThrow(() -> error("SHIPMENT_PACKING_LOCATION_INVALID"));
+            if (!"PACKING".equals(location.type())) throw error("SHIPMENT_PACKING_LOCATION_INVALID");
+            if (item.serialId() != null && item.quantity().compareTo(BigDecimal.ONE) != 0)
+                throw error("INVALID_SERIAL_QUANTITY");
+        }
+        Instant now = Instant.now();
+        UUID movement = UUID.randomUUID();
+        db.update("""
+            INSERT INTO inventory_movements(id,tenant_id,movement_type,idempotency_key,request_fingerprint,
+              reason_code,actor_subject,occurred_at,recorded_at)
+            VALUES(?,?,'SHIPMENT_DISPATCH',?,?,'SHIPMENT_DISPATCH',?,?,?)
+            """, movement, tenant, key, requestFingerprint, subject,
+            Timestamp.from(now), Timestamp.from(now));
+        int sequence = 0;
+        for (DispatchItem item : ordered) {
+            db.queryForObject("SELECT pg_advisory_xact_lock(hashtextextended(?,0))", Object.class,
+                tenant + ":" + item.variantId() + ":" + item.warehouseId() + ":" +
+                item.packingLocationId() + ":" + item.lotId() + ":" + item.serialId());
+            int count = db.update("""
+                UPDATE inventory_balances SET on_hand_quantity=on_hand_quantity-?,updated_at=?,version=version+1
+                WHERE tenant_id=? AND variant_id=? AND warehouse_id=? AND location_id=?
+                  AND lot_id IS NOT DISTINCT FROM ? AND serial_id IS NOT DISTINCT FROM ?
+                  AND on_hand_quantity-reserved_quantity>=?
+                """, item.quantity(), Timestamp.from(now), tenant, item.variantId(), item.warehouseId(),
+                item.packingLocationId(), item.lotId(), item.serialId(), item.quantity());
+            if (count != 1) throw error("SHIPMENT_INVENTORY_NOT_AVAILABLE");
+            db.update("""
+                INSERT INTO inventory_ledger_entries(id,tenant_id,movement_id,sequence,variant_id,warehouse_id,
+                  location_id,quantity_delta,unit_code,occurred_at,recorded_at,lot_id,serial_id)
+                VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?)
+                """, UUID.randomUUID(), tenant, movement, sequence++, item.variantId(), item.warehouseId(),
+                item.packingLocationId(), item.quantity().negate(), item.unitCode(),
+                Timestamp.from(now), Timestamp.from(now), item.lotId(), item.serialId());
+        }
+        return movement;
+    }
+
+    private static String fingerprintDispatch(List<DispatchItem> items) {
+        try {
+            String value = items.stream().map(Object::toString).reduce("", (a, b) -> a + "|" + b);
+            return HexFormat.of().formatHex(MessageDigest.getInstance("SHA-256")
+                .digest(value.getBytes(StandardCharsets.UTF_8)));
+        } catch (java.security.NoSuchAlgorithmException e) { throw new IllegalStateException(e); }
+    }
 
     InventoryFulfillmentService(JdbcTemplate db, WarehouseAvailability warehouses) {
         this.db = db;

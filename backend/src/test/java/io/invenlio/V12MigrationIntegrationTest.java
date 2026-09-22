@@ -34,7 +34,7 @@ class V12MigrationIntegrationTest {
         Flyway latest = Flyway.configure().dataSource(DB.getJdbcUrl(), DB.getUsername(), DB.getPassword())
             .schemas(schema).defaultSchema(schema).load();
         latest.migrate();
-        assertThat(latest.info().current().getVersion().getVersion()).isEqualTo("12");
+        assertThat(latest.info().current().getVersion().getVersion()).isEqualTo("13");
         try (var connection = DriverManager.getConnection(DB.getJdbcUrl(), DB.getUsername(), DB.getPassword());
              var statement = connection.createStatement()) {
             statement.execute("SET search_path TO " + schema);
