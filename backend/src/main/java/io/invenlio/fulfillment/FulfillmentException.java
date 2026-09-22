@@ -1,0 +1,1 @@
+package io.invenlio.fulfillment;final class FulfillmentException extends RuntimeException{private final String code;FulfillmentException(String c,String m){super(m);code=c;}String code(){return code;}}

@@ -7,6 +7,7 @@ public enum Permission {
  PROCUREMENT_SUPPLIER_READ("procurement-supplier:read"),PROCUREMENT_SUPPLIER_MANAGE("procurement-supplier:manage"),
  PURCHASE_ORDER_READ("purchase-order:read"),PURCHASE_ORDER_CREATE("purchase-order:create"),PURCHASE_ORDER_UPDATE("purchase-order:update"),PURCHASE_ORDER_APPROVE("purchase-order:approve"),PURCHASE_ORDER_CANCEL("purchase-order:cancel"),
  RECEIVING_READ("receiving:read"),RECEIVING_MANAGE("receiving:manage"),PUT_AWAY_READ("put-away:read"),PUT_AWAY_MANAGE("put-away:manage"),
- CUSTOMER_READ("customer:read"),CUSTOMER_MANAGE("customer:manage"),SALES_ORDER_READ("sales-order:read"),SALES_ORDER_MANAGE("sales-order:manage"),SALES_ORDER_ALLOCATE("sales-order:allocate");
+ CUSTOMER_READ("customer:read"),CUSTOMER_MANAGE("customer:manage"),SALES_ORDER_READ("sales-order:read"),SALES_ORDER_MANAGE("sales-order:manage"),SALES_ORDER_ALLOCATE("sales-order:allocate"),
+ PICKING_READ("picking:read"),PICKING_MANAGE("picking:manage"),PACKING_READ("packing:read"),PACKING_MANAGE("packing:manage");
  private final String key;Permission(String key){this.key=key;}public String key(){return key;}
 }

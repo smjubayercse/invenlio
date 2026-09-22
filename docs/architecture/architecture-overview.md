@@ -36,6 +36,8 @@ Inventory owns immutable physical stock movements and a synchronous current on-h
 
 Sales owns Customers, Sales Orders, commercial snapshots and reservation-backed allocation links. It consumes published Catalog, Warehouse and Inventory APIs; those upstream modules do not depend on Sales. Allocation changes reserved/ATP only and never writes a physical stock movement.
 
+Fulfillment owns pick lists, pick tasks, packing sessions and packages. It consumes published Sales, Inventory and Warehouse APIs. Inventory owns the atomic reservation consumption and paired physical relocation to packing; Sales owns the separate fulfillment projection. Packing structures stock already at the packing location without changing on-hand. See ADR-020 and `docs/domain/picking-and-packing.md`.
+
 The initial executable contains only `shared`, `organization`, and `identity`. Candidate future bounded contexts include catalog/products and variants; customers; suppliers/purchasing; warehouses/zones/bins; immutable inventory ledger/reservations/transfers/counting; receiving/put-away; sales orders/allocation; picking/waves/packing/shipping; returns; invoicing/EU VAT; portals; integrations/webhooks/notifications; analytics and forecasting. Their final boundaries must be discovered and recorded, not inferred from this list.
 
 ## Deployment direction
