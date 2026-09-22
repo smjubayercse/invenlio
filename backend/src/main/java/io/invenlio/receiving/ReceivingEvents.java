@@ -1,0 +1,1 @@
+package io.invenlio.receiving;import java.util.UUID;final class ReceivingEvents{record GoodsReceiptPosted(UUID tenantId,UUID receiptId,UUID purchaseOrderId){}record PutAwayCompleted(UUID tenantId,UUID taskId,UUID receiptId){}}

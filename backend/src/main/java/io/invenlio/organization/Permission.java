@@ -5,6 +5,7 @@ public enum Permission {
  WAREHOUSE_READ("warehouse:read"),WAREHOUSE_CREATE("warehouse:create"),WAREHOUSE_UPDATE("warehouse:update"),WAREHOUSE_ARCHIVE("warehouse:archive"),WAREHOUSE_LOCATION_READ("warehouse-location:read"),WAREHOUSE_LOCATION_MANAGE("warehouse-location:manage"),
  INVENTORY_READ("inventory:read"),INVENTORY_ADJUST("inventory:adjust"),INVENTORY_LEDGER_READ("inventory-ledger:read"),INVENTORY_TRACEABILITY_READ("inventory-traceability:read"),INVENTORY_TRACEABILITY_MANAGE("inventory-traceability:manage"),INVENTORY_RESERVATION_READ("inventory-reservation:read"),INVENTORY_RESERVATION_MANAGE("inventory-reservation:manage"),
  PROCUREMENT_SUPPLIER_READ("procurement-supplier:read"),PROCUREMENT_SUPPLIER_MANAGE("procurement-supplier:manage"),
- PURCHASE_ORDER_READ("purchase-order:read"),PURCHASE_ORDER_CREATE("purchase-order:create"),PURCHASE_ORDER_UPDATE("purchase-order:update"),PURCHASE_ORDER_APPROVE("purchase-order:approve"),PURCHASE_ORDER_CANCEL("purchase-order:cancel");
+ PURCHASE_ORDER_READ("purchase-order:read"),PURCHASE_ORDER_CREATE("purchase-order:create"),PURCHASE_ORDER_UPDATE("purchase-order:update"),PURCHASE_ORDER_APPROVE("purchase-order:approve"),PURCHASE_ORDER_CANCEL("purchase-order:cancel"),
+ RECEIVING_READ("receiving:read"),RECEIVING_MANAGE("receiving:manage"),PUT_AWAY_READ("put-away:read"),PUT_AWAY_MANAGE("put-away:manage");
  private final String key;Permission(String key){this.key=key;}public String key(){return key;}
 }
