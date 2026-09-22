@@ -1,2 +1,2 @@
-@org.springframework.modulith.ApplicationModule(allowedDependencies={"catalog","organization"})
+@org.springframework.modulith.ApplicationModule(allowedDependencies={"catalog","organization","warehouse"})
 package io.invenlio.procurement;

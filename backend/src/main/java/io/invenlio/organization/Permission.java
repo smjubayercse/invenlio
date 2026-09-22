@@ -4,6 +4,7 @@ public enum Permission {
  CATALOG_READ("catalog:read"),CATALOG_CREATE("catalog:create"),CATALOG_UPDATE("catalog:update"),CATALOG_ARCHIVE("catalog:archive"),CATALOG_CATEGORY_MANAGE("catalog-category:manage"),CATALOG_BRAND_MANAGE("catalog-brand:manage"),
  WAREHOUSE_READ("warehouse:read"),WAREHOUSE_CREATE("warehouse:create"),WAREHOUSE_UPDATE("warehouse:update"),WAREHOUSE_ARCHIVE("warehouse:archive"),WAREHOUSE_LOCATION_READ("warehouse-location:read"),WAREHOUSE_LOCATION_MANAGE("warehouse-location:manage"),
  INVENTORY_READ("inventory:read"),INVENTORY_ADJUST("inventory:adjust"),INVENTORY_LEDGER_READ("inventory-ledger:read"),INVENTORY_TRACEABILITY_READ("inventory-traceability:read"),INVENTORY_TRACEABILITY_MANAGE("inventory-traceability:manage"),INVENTORY_RESERVATION_READ("inventory-reservation:read"),INVENTORY_RESERVATION_MANAGE("inventory-reservation:manage"),
- PROCUREMENT_SUPPLIER_READ("procurement-supplier:read"),PROCUREMENT_SUPPLIER_MANAGE("procurement-supplier:manage");
+ PROCUREMENT_SUPPLIER_READ("procurement-supplier:read"),PROCUREMENT_SUPPLIER_MANAGE("procurement-supplier:manage"),
+ PURCHASE_ORDER_READ("purchase-order:read"),PURCHASE_ORDER_CREATE("purchase-order:create"),PURCHASE_ORDER_UPDATE("purchase-order:update"),PURCHASE_ORDER_APPROVE("purchase-order:approve"),PURCHASE_ORDER_CANCEL("purchase-order:cancel");
  private final String key;Permission(String key){this.key=key;}public String key(){return key;}
 }
