@@ -10,3 +10,7 @@
 - OpenAPI describes only implemented behavior and includes security, validation, problem responses, examples, and compatibility notes.
 - Additive compatible changes are preferred. Do not remove/rename fields, narrow accepted values, or change semantics inside v1 without a migration window. Clients must ignore documented additive response fields.
 
+## V1 browser support queries
+
+- `GET /api/v1/me` returns the authenticated subject, tenant/user UUIDs and effective application permission keys for the active membership. It rejects inactive organizations, identities and memberships. It is a UI bootstrap projection, not an authorization substitute; every operation still checks permissions server-side.
+- `GET /api/v1/packing-sessions` is a tenant-scoped, permission-gated (`packing:read`) resumable packing queue. Optional filters are `salesOrderId` and `status` (`OPEN` or `PACKED`), with bounded `page` and `size`. No business state is changed by this endpoint.

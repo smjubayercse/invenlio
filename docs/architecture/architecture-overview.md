@@ -2,7 +2,7 @@
 
 ## Business objective
 
-Invenlio will provide commercial order, inventory, and warehouse management for European SMEs and multi-warehouse operators. TASK-001 establishes an honest foundation only; none of the future operational domains are implemented.
+Invenlio provides V1 order, inventory, warehouse, procurement and fulfillment workflows for European SMEs and multi-warehouse operators. Further production hardening and later business capabilities remain separate work.
 
 ## Architectural style
 
@@ -40,7 +40,9 @@ Fulfillment owns pick lists, pick tasks, packing sessions and packages. It consu
 
 Fulfillment also owns draft and dispatched Shipments. A dispatch derives its stock dimensions from sealed package contents and invokes Inventory's governed outbound posting in the same transaction. Inventory removes on-hand at the packing location with immutable negative ledger history; Sales advances shipped quantities and completes fully shipped orders. See ADR-021 and `docs/domain/shipping.md`.
 
-The initial executable contains only `shared`, `organization`, and `identity`. Candidate future bounded contexts include catalog/products and variants; customers; suppliers/purchasing; warehouses/zones/bins; immutable inventory ledger/reservations/transfers/counting; receiving/put-away; sales orders/allocation; picking/waves/packing/shipping; returns; invoicing/EU VAT; portals; integrations/webhooks/notifications; analytics and forecasting. Their final boundaries must be discovered and recorded, not inferred from this list.
+The V1 backend includes organization, identity, catalog, warehouse, inventory, procurement, receiving, sales and fulfillment modules. Returns, invoicing/EU VAT, external integrations and advanced analytics remain future bounded contexts. Their final boundaries must be discovered and recorded, not inferred from this list.
+
+The `web/` React application is a separate browser client of the public V1 API, not a Spring Modulith module. Keycloak JS handles authorization-code/PKCE login and keeps tokens in memory; TanStack Query owns server state. A read-only `/api/v1/me` projection supplies the active tenant and effective permissions for UX, while the backend enforces every operation. A read-only packing-session list supports resumable browser work. No web component accesses backend persistence directly or implements business rules authoritatively.
 
 ## Deployment direction
 

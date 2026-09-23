@@ -1,0 +1,5 @@
+allowBuilds:
+  esbuild: true
+minimumReleaseAgeExclude:
+  - '@tabler/icons-react@3.48.0'
+  - '@tabler/icons@3.48.0'

@@ -2,7 +2,7 @@
 
 Invenlio is an enterprise order, inventory, and warehouse management platform being built for European SMEs, wholesalers, distributors, retailers, e-commerce businesses, and multi-warehouse operations.
 
-> **Maturity:** repository foundation under active development. Business modules are not implemented yet and this code is not production-ready.
+> **Maturity:** V1 backend workflows and a browser operations interface are under active verification. Production deployment hardening remains necessary.
 
 ## Architecture
 
@@ -21,7 +21,7 @@ The backend starts as a domain-driven modular monolith using Spring Modulith. St
 | Path | Responsibility |
 | --- | --- |
 | `backend/` | Executable Java backend and its tests |
-| `web/` | Future browser application placeholder |
+| `web/` | React/TypeScript V1 operations application; see [web setup](web/README.md) |
 | `warehouse-mobile/` | Future warehouse mobile client placeholder |
 | `infrastructure/` | Environment and platform assets |
 | `docker/` | Local foundational services |
@@ -31,7 +31,7 @@ The backend starts as a domain-driven modular monolith using Spring Modulith. St
 
 ## Prerequisites
 
-- JDK 21
+- JDK 21; Node.js 22.12+ and pnpm 11.19 for the web application
 - Docker Engine with Compose v2 (for integration tests and local infrastructure)
 
 ## Local setup
@@ -40,14 +40,15 @@ The backend starts as a domain-driven modular monolith using Spring Modulith. St
 2. Start infrastructure: `docker compose -f docker/compose.yml --env-file .env up -d`.
 3. Run the backend: `./mvnw -pl backend spring-boot:run -Dspring-boot.run.profiles=local`.
 4. Check `http://localhost:8080/actuator/health`.
+5. Follow [web/README.md](web/README.md) to run the browser UI on port 3000 with local Keycloak.
 
 On Windows use `mvnw.cmd` instead of `./mvnw`.
 
 ## Verification
 
 Run `./mvnw verify`. Integration tests require Docker and use a real PostgreSQL container; Flyway migrations are applied rather than replacing PostgreSQL with an in-memory database.
+For the frontend, run `pnpm install --frozen-lockfile`, `pnpm lint`, `pnpm typecheck`, `pnpm test`, and `pnpm build` in `web/`.
 
 ## Configuration
 
 Configuration is environment-driven. Local defaults are in `application-local.yml`; test configuration is isolated; production requires database, Redis, Kafka, and OIDC environment variables and validates the schema rather than modifying it. Never commit `.env` or real secrets. See [configuration](docs/configuration.md).
-

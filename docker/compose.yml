@@ -59,6 +59,17 @@ services:
       interval: 10s
       timeout: 5s
       retries: 30
+  web:
+    profiles: [web]
+    build:
+      context: ../web
+      args:
+        VITE_API_BASE_URL: ${VITE_API_BASE_URL:-/api/v1}
+        VITE_OIDC_URL: ${VITE_OIDC_URL:-http://localhost:8081}
+        VITE_OIDC_REALM: ${VITE_OIDC_REALM:-invenlio}
+        VITE_OIDC_CLIENT_ID: ${VITE_OIDC_CLIENT_ID:-invenlio-web}
+    ports: ["3000:80"]
+    extra_hosts: ["host.docker.internal:host-gateway"]
 volumes:
   postgres-data:
   redis-data:

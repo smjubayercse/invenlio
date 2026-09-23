@@ -9,3 +9,7 @@ target/
 Thumbs.db
 docker/data/
 work/
+web/node_modules/
+web/dist/
+web/coverage/
+web/*.tsbuildinfo
