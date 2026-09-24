@@ -163,7 +163,7 @@ export function App() {
           </Group>
         </Group>
       </AppShell.Header>
-      <AppShell.Navbar p="md">
+      <AppShell.Navbar p="md" style={{ overflowY: "auto" }}>
         <Stack gap="md">
           {sections.map((s) => (
             <div key={s.label}>

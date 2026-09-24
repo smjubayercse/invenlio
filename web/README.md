@@ -5,16 +5,18 @@ React 19, TypeScript 5, Vite 7 and Mantine provide the desktop-first operations 
 ## Prerequisites and run
 
 - Node.js 22.12+ (Node 24 recommended), pnpm 11.19, Java 21, Docker Desktop.
-- Start local services from the repository root: `docker compose -f docker/compose.yml up -d`.
-- Start the backend with the `local` profile on `http://localhost:8080`.
+- Start the local four-service stack from the repository root: `docker compose -f docker/compose.yml --env-file .env --profile web build` then `docker compose -f docker/compose.yml --env-file .env --profile web up -d`.
+- Alternatively run the backend with the `local` profile on `http://localhost:8080` and use `pnpm dev` for frontend development.
 - In `web/`, copy `.env.example` to `.env.local`, then run `pnpm install --frozen-lockfile` and `pnpm dev`. Open `http://localhost:3000`.
-- The local Keycloak realm is at `http://localhost:8081`. The public OIDC client is `invenlio-web`; redirect URI must include `http://localhost:3000/*`. Add an active user and membership in the intended tenant, with `tenant_id` token claim and appropriate backend roles. The local realm import is in `docker/keycloak/invenlio-realm.json`. Never place client secrets in Vite variables.
+- The local Keycloak realm defaults to `http://localhost:8081`; change `KEYCLOAK_HTTP_PORT` and all OIDC URL variables together if needed. The public OIDC client is `invenlio-web`; redirect URI includes `http://localhost:3000/*`. The local realm import is in `docker/keycloak/invenlio-realm.json`. Run `scripts/bootstrap-demo.ps1` with local-only password environment variables to establish the tenant, admin, and read-only member. Never put client secrets in Vite variables.
 
 The Vite dev proxy forwards `/api` to the backend. Override `VITE_API_BASE_URL`, `VITE_OIDC_URL`, `VITE_OIDC_REALM`, and `VITE_OIDC_CLIENT_ID` for other environments. Vite variables are public build-time configuration, never secrets. Backend permission checks remain authoritative; hidden controls only improve UX.
 
 ## Verify and build
 
-From `web/`: `pnpm format:check`, `pnpm lint`, `pnpm typecheck`, `pnpm test`, `pnpm build`. From repository root: `./mvnw verify` on Java 21. The optional Docker image builds with `docker compose -f docker/compose.yml --profile web build web`, then serves at port 3000 when started with the `web` profile. The backend must separately listen on host port 8080 for the image's nginx reverse proxy.
+From `web/`: `pnpm install --frozen-lockfile`, `pnpm format:check`, `pnpm lint`, `pnpm typecheck`, `pnpm test`, `pnpm build`. From repository root: `./mvnw verify` on Java 21. The Docker web image serves built assets through Nginx on port 3000 and proxies `/api` to the Compose backend service.
+
+For live browser E2E, start the complete stack and bootstrap demo users. In `web/`, run `pnpm exec playwright install chromium`, set `E2E_ADMIN_PASSWORD` and `E2E_READONLY_PASSWORD` to the local demo values, then run `pnpm test:e2e`. The suite uses real Chromium, Keycloak, backend and PostgreSQL; it does not mock APIs. Alternatively run `scripts/verify-v1.ps1 -E2E` from the repository root. Tests create uniquely named records and must run against a disposable local/demo tenant, never production.
 
 ## Deterministic V1 smoke flow
 

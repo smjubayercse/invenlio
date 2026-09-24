@@ -79,6 +79,7 @@ export function Suppliers() {
                 { key: "email", label: "Email" },
                 { key: "phone", label: "Phone" },
               ]}
+              transform={(values) => ({ ...values, version: 0 })}
             />
           )
         }
@@ -281,7 +282,12 @@ export function Suppliers() {
                     const variant = await get<Variant>(
                       `/catalog/lookup?sku=${encodeURIComponent(v.sku)}`,
                     );
-                    return { ...v, sku: undefined, variantId: variant.id };
+                    return {
+                      ...v,
+                      sku: undefined,
+                      variantId: variant.id,
+                      version: 0,
+                    };
                   }}
                 />
               )}

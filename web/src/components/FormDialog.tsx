@@ -9,7 +9,7 @@ import {
 } from "@mantine/core";
 import { notifications } from "@mantine/notifications";
 import { useQueryClient } from "@tanstack/react-query";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { api } from "../api/client";
 import { positiveQuantity } from "../features/workflow";
 export type Field = {
@@ -39,6 +39,7 @@ export function FormDialog({
 }) {
   const [opened, setOpened] = useState(false);
   const [busy, setBusy] = useState(false);
+  const submitting = useRef(false);
   const [values, setValues] = useState<Record<string, string>>({});
   const [error, setError] = useState("");
   const client = useQueryClient();
@@ -46,6 +47,7 @@ export function FormDialog({
     String(values[field.key] ?? field.defaultValue ?? "");
   async function submit(event: React.FormEvent) {
     event.preventDefault();
+    if (submitting.current) return;
     const missing = fields.find(
       (field) => field.required && !value(field).trim(),
     );
@@ -63,6 +65,7 @@ export function FormDialog({
       setError(`${invalid.label} must be greater than zero.`);
       return;
     }
+    submitting.current = true;
     setBusy(true);
     setError("");
     try {
@@ -87,6 +90,7 @@ export function FormDialog({
     } catch (failure) {
       setError(failure instanceof Error ? failure.message : "Unable to save.");
     } finally {
+      submitting.current = false;
       setBusy(false);
     }
   }
@@ -102,7 +106,9 @@ export function FormDialog({
       </Button>
       <Modal
         opened={opened}
-        onClose={() => setOpened(false)}
+        onClose={() => {
+          if (!submitting.current) setOpened(false);
+        }}
         title={title}
         centered
         size="lg"
@@ -131,12 +137,13 @@ export function FormDialog({
                   label={field.label}
                   required={field.required}
                   value={value(field)}
-                  onChange={(event) =>
+                  onChange={(event) => {
+                    const next = event.currentTarget.value;
                     setValues((previous) => ({
                       ...previous,
-                      [field.key]: event.currentTarget.value,
-                    }))
-                  }
+                      [field.key]: next,
+                    }));
+                  }}
                 />
               ) : (
                 <TextInput
@@ -145,12 +152,13 @@ export function FormDialog({
                   required={field.required}
                   type={field.type || "text"}
                   value={value(field)}
-                  onChange={(event) =>
+                  onChange={(event) => {
+                    const next = event.currentTarget.value;
                     setValues((previous) => ({
                       ...previous,
-                      [field.key]: event.currentTarget.value,
-                    }))
-                  }
+                      [field.key]: next,
+                    }));
+                  }}
                 />
               ),
             )}
@@ -160,7 +168,11 @@ export function FormDialog({
               </div>
             )}
             <Group justify="end">
-              <Button variant="default" onClick={() => setOpened(false)}>
+              <Button
+                variant="default"
+                disabled={busy}
+                onClick={() => setOpened(false)}
+              >
                 Cancel
               </Button>
               <Button type="submit" loading={busy}>

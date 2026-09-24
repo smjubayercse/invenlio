@@ -94,4 +94,31 @@ describe("form defaults", () => {
     ).toEqual({ baseUnit: "EA" });
     vi.unstubAllGlobals();
   });
+  it("does not send a second request while the first save is pending", async () => {
+    let finish!: (response: Response) => void;
+    const fetcher = vi.fn().mockImplementation(
+      () =>
+        new Promise<Response>((resolve) => {
+          finish = resolve;
+        }),
+    );
+    vi.stubGlobal("fetch", fetcher);
+    render(
+      providers(
+        <FormDialog title="Create product" path="/products" fields={[]} />,
+      ),
+    );
+    fireEvent.click(screen.getByRole("button", { name: "Create" }));
+    const form = (await screen.findByRole("button", { name: "Save" })).closest(
+      "form",
+    )!;
+    fireEvent.submit(form);
+    fireEvent.submit(form);
+    expect(fetcher).toHaveBeenCalledOnce();
+    finish(new Response("{}", { status: 200 }));
+    await waitFor(() =>
+      expect(screen.queryByRole("dialog")).not.toBeInTheDocument(),
+    );
+    vi.unstubAllGlobals();
+  });
 });

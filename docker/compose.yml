@@ -6,7 +6,7 @@ services:
       POSTGRES_DB: ${POSTGRES_DB:-invenlio}
       POSTGRES_USER: ${POSTGRES_USER:-invenlio}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-local-development-only}
-    ports: ["5432:5432"]
+    ports: ["127.0.0.1:5432:5432"]
     volumes: [postgres-data:/var/lib/postgresql/data]
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
@@ -14,9 +14,10 @@ services:
       timeout: 3s
       retries: 20
   redis:
+    profiles: [integration]
     image: redis:8.2.1-alpine
     command: ["redis-server", "--appendonly", "yes"]
-    ports: ["6379:6379"]
+    ports: ["127.0.0.1:6379:6379"]
     volumes: [redis-data:/data]
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
@@ -24,9 +25,10 @@ services:
       timeout: 3s
       retries: 20
   kafka:
+    profiles: [integration]
     image: apache/kafka:4.1.0
     hostname: kafka
-    ports: ["9092:9092"]
+    ports: ["127.0.0.1:9092:9092"]
     environment:
       KAFKA_NODE_ID: 1
       KAFKA_PROCESS_ROLES: broker,controller
@@ -50,7 +52,7 @@ services:
     environment:
       KC_BOOTSTRAP_ADMIN_USERNAME: ${KEYCLOAK_ADMIN:-admin}
       KC_BOOTSTRAP_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD:-local-development-only}
-    ports: ["8081:8080", "9000:9000"]
+    ports: ["127.0.0.1:${KEYCLOAK_HTTP_PORT:-8081}:8080", "127.0.0.1:${KEYCLOAK_HEALTH_PORT:-9000}:9000"]
     volumes:
       - keycloak-data:/opt/keycloak/data
       - ./keycloak/invenlio-realm.json:/opt/keycloak/data/import/invenlio-realm.json:ro
@@ -59,8 +61,35 @@ services:
       interval: 10s
       timeout: 5s
       retries: 30
+  backend:
+    profiles: [web]
+    build:
+      context: ..
+      dockerfile: docker/backend.Dockerfile
+    environment:
+      SPRING_PROFILES_ACTIVE: local
+      DATABASE_URL: jdbc:postgresql://postgres:5432/${POSTGRES_DB:-invenlio}
+      DATABASE_USERNAME: ${POSTGRES_USER:-invenlio}
+      DATABASE_PASSWORD: ${POSTGRES_PASSWORD:-local-development-only}
+      REDIS_HOST: redis
+      KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      OIDC_ISSUER_URI: ${OIDC_ISSUER_URI:-http://localhost:8081/realms/invenlio}
+      OIDC_JWK_SET_URI: ${OIDC_JWK_SET_URI:-http://host.docker.internal:8081/realms/invenlio/protocol/openid-connect/certs}
+    ports: ["127.0.0.1:${BACKEND_HTTP_PORT:-8080}:8080"]
+    extra_hosts: ["host.docker.internal:host-gateway"]
+    depends_on:
+      postgres: {condition: service_healthy}
+      keycloak: {condition: service_healthy}
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://localhost:8080/actuator/health/readiness"]
+      interval: 10s
+      timeout: 5s
+      retries: 20
   web:
     profiles: [web]
+    depends_on:
+      backend: {condition: service_healthy}
     build:
       context: ../web
       args:
@@ -68,8 +97,14 @@ services:
         VITE_OIDC_URL: ${VITE_OIDC_URL:-http://localhost:8081}
         VITE_OIDC_REALM: ${VITE_OIDC_REALM:-invenlio}
         VITE_OIDC_CLIENT_ID: ${VITE_OIDC_CLIENT_ID:-invenlio-web}
-    ports: ["3000:80"]
+    ports: ["127.0.0.1:3000:8080"]
     extra_hosts: ["host.docker.internal:host-gateway"]
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://127.0.0.1:8080/"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
 volumes:
   postgres-data:
   redis-data:

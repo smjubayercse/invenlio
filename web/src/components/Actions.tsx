@@ -1,7 +1,7 @@
 import { modals } from "@mantine/modals";
 import { notifications } from "@mantine/notifications";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { Button } from "@mantine/core";
 import { post, mutationKey } from "../api/client";
 export function useAction() {
@@ -53,13 +53,16 @@ export function ConfirmAction({
 }) {
   const action = useAction();
   const [open, setOpen] = useState(false);
+  const inFlight = useRef(false);
   return (
     <Button
-      disabled={disabled}
+      disabled={disabled || open || action.isPending}
       loading={action.isPending}
       color={color}
       variant="light"
       onClick={() => {
+        if (inFlight.current) return;
+        inFlight.current = true;
         setOpen(true);
         modals.openConfirmModal({
           title: title || label,
@@ -67,10 +70,20 @@ export function ConfirmAction({
             warning || `Are you sure you want to ${label.toLowerCase()}?`,
           labels: { confirm: label, cancel: "Keep current state" },
           confirmProps: { color: color || "indigo" },
-          onCancel: () => setOpen(false),
+          onCancel: () => {
+            inFlight.current = false;
+            setOpen(false);
+          },
           onConfirm: () => {
             setOpen(false);
-            action.mutate({ path, body: { version }, idempotent });
+            action.mutate(
+              { path, body: { version }, idempotent },
+              {
+                onSettled: () => {
+                  inFlight.current = false;
+                },
+              },
+            );
           },
         });
       }}

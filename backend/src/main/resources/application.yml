@@ -17,6 +17,9 @@ spring:
     virtual:
       enabled: true
 management:
+  health:
+    redis:
+      enabled: false
   endpoints:
     web:
       exposure:
@@ -36,4 +39,3 @@ springdoc:
     path: /swagger-ui.html
 server:
   shutdown: graceful
-

@@ -3,24 +3,19 @@ spring:
     url: ${DATABASE_URL}
     username: ${DATABASE_USERNAME}
     password: ${DATABASE_PASSWORD}
-  data:
-    redis:
-      url: ${REDIS_URL}
-  kafka:
-    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS}
   security:
     oauth2:
       resourceserver:
         jwt:
           issuer-uri: ${OIDC_ISSUER_URI}
           jwk-set-uri: ${OIDC_JWK_SET_URI}
+  jpa:
+    hibernate:
+      ddl-auto: validate
 invenlio:
   security:
     jwt:
       audience: ${OIDC_AUDIENCE}
-  jpa:
-    hibernate:
-      ddl-auto: validate
 springdoc:
   api-docs:
     enabled: false

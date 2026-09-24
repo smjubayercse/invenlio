@@ -53,6 +53,7 @@ export function Customers() {
                   type: "textarea",
                 },
               ]}
+              transform={(values) => ({ ...values, version: 0 })}
             />
           )
         }

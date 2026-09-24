@@ -58,6 +58,11 @@ export function Warehouses() {
                 { key: "city", label: "City" },
                 { key: "country", label: "Country code" },
               ]}
+              transform={(values) => ({
+                ...values,
+                country: values.country || null,
+                version: 0,
+              })}
             />
           )
         }

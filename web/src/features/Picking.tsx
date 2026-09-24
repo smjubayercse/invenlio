@@ -45,7 +45,7 @@ export function Picking() {
         ]}
         filters={{
           label: "Status",
-          values: ["PENDING", "IN_PROGRESS", "COMPLETED"],
+          values: ["CREATED", "IN_PROGRESS", "COMPLETED"],
         }}
         search={false}
         action={auth.can("picking:manage") && <PickCreate />}
@@ -72,7 +72,7 @@ export function Picking() {
               </Group>
               <Group mt="md">
                 {auth.can("picking:manage") &&
-                  pick.data.status === "PENDING" && (
+                  pick.data.status === "CREATED" && (
                     <ConfirmAction
                       label="Start"
                       path={`/pick-lists/${id}/start`}

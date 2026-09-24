@@ -86,6 +86,7 @@ export function Products() {
                   baseUnit: v.baseUnit,
                   trackingMode: v.trackingMode || "NONE",
                   expirationRequired: v.expirationRequired === "true",
+                  version: 0,
                 },
               })}
             />
