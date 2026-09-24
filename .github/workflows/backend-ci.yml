@@ -1,9 +1,9 @@
 name: Backend CI
 on:
   push:
-    paths: ["backend/**", "pom.xml", ".github/workflows/backend-ci.yml"]
+    paths: ["backend/**", "pom.xml", "mvnw", ".mvn/**", ".github/workflows/backend-ci.yml"]
   pull_request:
-    paths: ["backend/**", "pom.xml", ".github/workflows/backend-ci.yml"]
+    paths: ["backend/**", "pom.xml", "mvnw", ".mvn/**", ".github/workflows/backend-ci.yml"]
 permissions:
   contents: read
 jobs:
@@ -19,4 +19,3 @@ jobs:
           cache: maven
       - name: Verify backend
         run: ./mvnw --batch-mode --no-transfer-progress verify
-
