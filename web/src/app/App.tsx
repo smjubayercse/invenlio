@@ -147,11 +147,11 @@ export function App() {
           </Group>
           <Group gap="sm">
             <Avatar color="indigo" radius="xl" size="sm">
-              {auth.me.subject.slice(0, 1).toUpperCase()}
+              I
             </Avatar>
             <div>
               <Text size="sm" fw={600}>
-                {auth.me.subject}
+                Signed in
               </Text>
               <Text size="xs" c="dimmed">
                 Tenant {auth.me.tenantId.slice(0, 8)}

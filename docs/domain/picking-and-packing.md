@@ -10,6 +10,6 @@ Sales keeps commercial allocation status separate from fulfillment status. The l
 
 After all tasks complete, one packing session may be opened for the pick list. Packages have local deterministic numbers, optional integer weight and dimensions, and contain items tied to completed pick tasks. A task's total packaged quantity may not exceed its picked quantity. Multiple packages may split a non-serialized task; a serial may appear in only one package. A session is PACKED only when every picked unit is assigned to a completed package.
 
-Packing writes no inventory movement and does not change on-hand or location. Packaged stock remains company-owned at the packing location. TASK-013 will own the shipping handoff and physical deduction. Wave, batch and cluster picking, route optimization, short-pick exceptions, scanner UI and label printing are deferred.
+Packing writes no inventory movement and does not change on-hand or location. Packaged stock remains company-owned at the packing location until Fulfillment dispatches a shipment and Inventory posts the physical deduction. Wave, batch and cluster picking, route optimization, short-pick exceptions, scanner UI and label printing are deferred.
 
 The HTTP endpoints are documented by the generated OpenAPI at `/v3/api-docs`. Picking uses `/api/v1/pick-lists` and packing uses `/api/v1/packing-sessions`. All operations require tenant authentication and the corresponding picking or packing read/manage permission.

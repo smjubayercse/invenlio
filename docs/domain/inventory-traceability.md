@@ -16,4 +16,4 @@ The exact matrix is: NONE forbids both IDs; LOT requires only lot; SERIAL requir
 
 Balances are keyed by tenant, variant, warehouse, location, lot and serial using PostgreSQL `NULLS NOT DISTINCT`. Serial posting takes a tenant/serial advisory lock: deltas are ±1 and global physical presence cannot exceed one. Lots can span locations. Expiry is derived from `expiresOn` and does not write off physical stock automatically.
 
-Indexes support exact identity lookup, expiry-ordered lot reads, traceable ledger history, positive balances and future FEFO candidate queries. Allocation, receiving, picking, transfers, GS1 AI parsing, recalls and warranties remain future workflows. A future transfer must atomically remove and add a serial; TASK-006 manual -1 then +1 is administrative correction only.
+Indexes support exact identity lookup, expiry-ordered lot reads, traceable ledger history, positive balances and FEFO candidate queries. Allocation, receiving and picking now use these traceability dimensions. General transfers, GS1 AI parsing, recalls and warranties remain future workflows; manual -1 then +1 postings are administrative corrections, not a transfer workflow.

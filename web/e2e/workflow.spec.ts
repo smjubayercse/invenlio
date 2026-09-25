@@ -1,11 +1,34 @@
 import { expect, test, type Locator, type Page } from "@playwright/test";
+import { mkdir } from "node:fs/promises";
+import { resolve } from "node:path";
 
 const suffix = Date.now().toString(36).toUpperCase();
-const productName = `E2E Product ${suffix}`;
-const sku = `E2E-SKU-${suffix}`;
-const warehouseName = `E2E Warehouse ${suffix}`;
-const warehouseCode = `E2E-WH-${suffix}`;
-const supplierName = `E2E Supplier ${suffix}`;
+const captureScreenshots = process.env.INVENLIO_CAPTURE_SCREENSHOTS === "1";
+const productName = captureScreenshots
+  ? `USB-C Cable 2m · ${suffix}`
+  : `E2E Product ${suffix}`;
+const sku = `${captureScreenshots ? "CABLE-USB-C" : "E2E-SKU"}-${suffix}`;
+const warehouseName = captureScreenshots
+  ? `Vienna Central Warehouse · ${suffix}`
+  : `E2E Warehouse ${suffix}`;
+const warehouseCode = `${captureScreenshots ? "VIE-WH" : "E2E-WH"}-${suffix}`;
+const supplierName = captureScreenshots
+  ? `Alpine Components GmbH · ${suffix}`
+  : `E2E Supplier ${suffix}`;
+
+async function screenshot(page: Page, filename: string) {
+  if (!captureScreenshots) return;
+  await page.waitForLoadState("networkidle");
+  await expect(page.locator(".mantine-Notification-root")).toHaveCount(0, {
+    timeout: 20_000,
+  });
+  const directory = resolve("..", "docs", "images");
+  await mkdir(directory, { recursive: true });
+  await page.screenshot({
+    path: resolve(directory, filename),
+    animations: "disabled",
+  });
+}
 
 async function login(page: Page) {
   const password = process.env.E2E_ADMIN_PASSWORD;
@@ -21,6 +44,7 @@ async function login(page: Page) {
 }
 
 async function openForm(page: Page, button: string, title: string, index = 0) {
+  await page.waitForLoadState("networkidle");
   await page
     .getByRole("button", { name: button, exact: true })
     .nth(index)
@@ -67,6 +91,13 @@ async function save(dialog: Locator) {
   await expect(dialog).toBeHidden();
 }
 
+async function findRecord(page: Page, label: string) {
+  await page.waitForLoadState("networkidle");
+  await page.getByRole("textbox", { name: "Search" }).fill(label);
+  await expect(page.getByRole("link", { name: label })).toBeVisible();
+  await page.waitForLoadState("networkidle");
+}
+
 async function confirm(page: Page, label: string) {
   await page.getByRole("button", { name: label, exact: true }).first().click();
   const dialog = page.getByRole("dialog");
@@ -79,6 +110,8 @@ test("authenticated V1 warehouse-to-shipment lifecycle", async ({
   request,
 }) => {
   test.setTimeout(600_000);
+  if (captureScreenshots)
+    await page.setViewportSize({ width: 1440, height: 900 });
   const browserErrors: string[] = [];
   const serverErrors: string[] = [];
   const failedResources: string[] = [];
@@ -96,7 +129,12 @@ test("authenticated V1 warehouse-to-shipment lifecycle", async ({
       serverErrors.push(`${response.status()} ${response.url()}`);
   });
   page.on("requestfailed", (item) => {
-    if (item.url().includes("/api/v1/") || item.url().includes("/assets/"))
+    // React Query cancels superseded reads when a route or filter changes.
+    // Keep reporting every other API/asset transport failure.
+    if (
+      item.failure()?.errorText !== "net::ERR_ABORTED" &&
+      (item.url().includes("/api/v1/") || item.url().includes("/assets/"))
+    )
       failedResources.push(
         `${item.url()} ${item.failure()?.errorText || "failed"}`,
       );
@@ -104,10 +142,12 @@ test("authenticated V1 warehouse-to-shipment lifecycle", async ({
 
   await test.step("authenticate and create catalog item", async () => {
     await login(page);
+    await page.waitForLoadState("networkidle");
     const dialog = await openForm(page, "Create", "Create product");
     await fill(dialog, "Product name", productName);
     await fill(dialog, "Initial SKU", sku);
     await save(dialog);
+    await findRecord(page, productName);
     await page.getByRole("link", { name: productName }).click();
     await confirm(page, "Activate");
     await confirm(page, "Activate SKU");
@@ -120,6 +160,7 @@ test("authenticated V1 warehouse-to-shipment lifecycle", async ({
     await fill(warehouse, "Code", warehouseCode);
     await fill(warehouse, "Name", warehouseName);
     await save(warehouse);
+    await findRecord(page, warehouseCode);
     await page.getByRole("link", { name: warehouseCode }).click();
     await confirm(page, "Activate");
     await expect(
@@ -151,6 +192,7 @@ test("authenticated V1 warehouse-to-shipment lifecycle", async ({
     await fill(supplier, "Supplier number", `E2E-SUP-${suffix}`);
     await fill(supplier, "Name", supplierName);
     await save(supplier);
+    await findRecord(page, `E2E-SUP-${suffix}`);
     await page.getByRole("link", { name: `E2E-SUP-${suffix}` }).click();
     await confirm(page, "Activate");
     const mapping = await openForm(page, "Create", "Add supplier product", 2);
@@ -186,6 +228,7 @@ test("authenticated V1 warehouse-to-shipment lifecycle", async ({
     await confirm(page, "Submit");
     await confirm(page, "Approve");
     await confirm(page, "Mark sent");
+    await screenshot(page, "purchase-order.png");
     await page.getByRole("link", { name: "Goods receipts" }).first().click();
     const receipt = await openForm(
       page,
@@ -215,6 +258,7 @@ test("authenticated V1 warehouse-to-shipment lifecycle", async ({
     await fill(putAway, "Quantity", "2");
     await save(putAway);
     await confirm(page, "Complete");
+    await screenshot(page, "receiving-putaway.png");
     const headers = { Authorization: authorization };
     const purchaseOrder = await request.get(
       `http://localhost:8080/api/v1/purchase-orders/${purchaseOrderId}`,
@@ -244,6 +288,16 @@ test("authenticated V1 warehouse-to-shipment lifecycle", async ({
     );
     expect(availability.ok()).toBeTruthy();
     expect(((await availability.json()) as { onHand: number }).onHand).toBe(2);
+    if (captureScreenshots) {
+      await page.getByRole("link", { name: "Inventory" }).click();
+      await page.getByRole("textbox", { name: "SKU" }).fill(sku);
+      await page.getByRole("button", { name: "Apply" }).click();
+      await expect(
+        page.getByRole("table").first().locator("tbody tr"),
+      ).toHaveCount(2);
+      await expect(page.locator("tbody").getByText(sku).first()).toBeVisible();
+      await screenshot(page, "inventory.png");
+    }
   });
 
   await test.step("sell and reserve stock", async () => {
@@ -252,14 +306,18 @@ test("authenticated V1 warehouse-to-shipment lifecycle", async ({
       page.getByRole("heading", { name: "Customers" }),
     ).toBeVisible();
     const customer = await openForm(page, "Create", "Create customer");
-    await fill(customer, "Name", `E2E Customer ${suffix}`);
-    await fill(customer, "Shipping address", "Local E2E test address");
+    const customerName = captureScreenshots
+      ? `Nordlicht Retail GmbH · ${suffix}`
+      : `E2E Customer ${suffix}`;
+    await fill(customer, "Name", customerName);
+    await fill(customer, "Shipping address", "Fictional demo address");
     await save(customer);
-    await page.getByRole("link", { name: `E2E Customer ${suffix}` }).click();
+    await findRecord(page, customerName);
+    await page.getByRole("link", { name: customerName }).click();
     await confirm(page, "Activate");
     await page.getByRole("link", { name: "Sales orders" }).click();
     const order = await openForm(page, "Create", "Create sales order");
-    await select(page, order, "Customer", `E2E Customer ${suffix}`);
+    await select(page, order, "Customer", customerName);
     await select(page, order, "Fulfillment warehouse", warehouseName);
     await save(order);
     await expect(page).toHaveURL(/\/sales-orders\//);
@@ -290,6 +348,7 @@ test("authenticated V1 warehouse-to-shipment lifecycle", async ({
       available: 0,
     });
     await expect(page.getByText(sku)).toBeVisible();
+    await screenshot(page, "sales-order.png");
   });
 
   await test.step("pick, pack, and dispatch", async () => {
@@ -301,6 +360,7 @@ test("authenticated V1 warehouse-to-shipment lifecycle", async ({
     await expect(page).toHaveURL(/\/picking\//);
     await confirm(page, "Start");
     await confirm(page, "Complete task");
+    await screenshot(page, "picking.png");
     const packing = await openForm(page, "Create", "Open packing session");
     await save(packing);
     await expect(page).toHaveURL(/\/packing\//);
@@ -315,6 +375,7 @@ test("authenticated V1 warehouse-to-shipment lifecycle", async ({
     await save(item);
     await confirm(page, "Seal package");
     await confirm(page, "Complete packing");
+    await screenshot(page, "packing.png");
     await page.getByRole("link", { name: "Shipping" }).click();
     const shipment = await openForm(page, "Create", "Create shipment");
     await selectMatching(
@@ -323,11 +384,17 @@ test("authenticated V1 warehouse-to-shipment lifecycle", async ({
       "Packed package",
       new RegExp(packageNumber),
     );
+    if (captureScreenshots) {
+      await fill(shipment, "Carrier", "Alpine Demo Freight");
+      await fill(shipment, "Service", "Standard delivery");
+      await fill(shipment, "Tracking number", `DEMO-${suffix}`);
+    }
     await save(shipment);
     await expect(page).toHaveURL(/\/shipping\//);
     shipmentUrl = page.url();
     await confirm(page, "Dispatch");
     await expect(page.getByText("DISPATCHED")).toBeVisible();
+    await screenshot(page, "shipping.png");
   });
 
   await test.step("verify final commercial and physical state", async () => {
@@ -396,4 +463,24 @@ test("authenticated V1 warehouse-to-shipment lifecycle", async ({
     headers: { Authorization: authorization },
   });
   expect(me.ok()).toBeTruthy();
+  if (captureScreenshots) {
+    await page.getByRole("link", { name: "Overview" }).click();
+    await expect(
+      page.getByRole("heading", { name: "Operations overview" }),
+    ).toBeVisible();
+    await expect
+      .poll(
+        async () => {
+          const values = await page
+            .locator(".mantine-Card-root h2")
+            .allTextContents();
+          return (
+            values.length === 8 && values.every((v) => /^\d+$/.test(v.trim()))
+          );
+        },
+        { timeout: 60_000 },
+      )
+      .toBe(true);
+    await screenshot(page, "dashboard.png");
+  }
 });
