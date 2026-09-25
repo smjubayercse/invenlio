@@ -16,6 +16,6 @@ SupplierProduct maps an immutable supplier and Catalog variant to a normalized s
 
 Purchase packaging uses an exact `purchaseUnitCode` plus `baseUnitsPerPurchaseUnit`; this deliberately supports a single direct conversion rather than a conversion graph. MOQ and order multiple are measured in purchase units. Current unit cost is exact `NUMERIC(19,6)` per purchase unit with ISO 4217 currency. Lead time is calendar days, with a relation override falling back to the supplier default.
 
-Future purchase orders will snapshot supplier SKU, purchase unit/conversion, price/currency, and the chosen ordering address so historical documents do not depend on mutable master data. Purchase orders, receiving, invoices, replenishment, and integrations are deferred.
+Purchase orders snapshot supplier SKU, purchase unit/conversion, price/currency, and ordering data so historical documents do not depend on mutable master data. Purchase orders and receiving are implemented in separate modules; invoices, replenishment and external integrations remain deferred.
 
 All operations authorize `procurement-supplier:read` or `procurement-supplier:manage`, derive tenant ownership from authenticated membership, use tenant-aware foreign keys, return DTO records, bound collection reads to 100, allow-list sorting, audit mutations, and use optimistic versions.

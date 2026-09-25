@@ -1,6 +1,6 @@
 # Warehouse domain
 
-Warehouse owns where goods **may** exist; Catalog owns what an item is; future Inventory owns how much exists at a location.
+Warehouse owns where goods **may** exist; Catalog owns what an item is; Inventory owns how much exists at a location.
 
 ```mermaid
 flowchart TD

@@ -2,7 +2,7 @@
 
 ## Business objective
 
-Invenlio provides V1 order, inventory, warehouse, procurement and fulfillment workflows for European SMEs and multi-warehouse operators. Further production hardening and later business capabilities remain separate work.
+Invenlio provides V1 order, inventory, warehouse, procurement and fulfillment workflows for a local/demo environment aimed at European SME and multi-warehouse use cases. Further production hardening and later business capabilities remain separate work.
 
 ## Architectural style
 
@@ -10,13 +10,10 @@ The system begins as a domain-driven modular monolith. Business capabilities are
 
 ```mermaid
 flowchart LR
-  Web[Web / public API] --> App[Invenlio modular monolith]
-  Mobile[Warehouse mobile] --> App
+  Web[React web / JSON API] --> App[Invenlio modular monolith]
+  Web --> IdP[Keycloak / OIDC]
   App --> PG[(PostgreSQL)]
-  App --> Redis[(Redis)]
-  App --> Kafka[(Kafka)]
-  App --> IdP[Keycloak / OIDC]
-  App --> Ext[External systems via adapters]
+  App --> IdP
   subgraph App
     Shared[Shared kernel]
     Org[Organization]
@@ -24,7 +21,10 @@ flowchart LR
     Catalog[Catalog master data]
     Warehouse[Warehouse topology]
     Inventory[Inventory ledger and balance projection]
-    Future[Future bounded modules]
+    Procurement[Procurement]
+    Receiving[Receiving]
+    Sales[Sales]
+    Fulfillment[Fulfillment]
   end
 ```
 
@@ -40,13 +40,13 @@ Fulfillment owns pick lists, pick tasks, packing sessions and packages. It consu
 
 Fulfillment also owns draft and dispatched Shipments. A dispatch derives its stock dimensions from sealed package contents and invokes Inventory's governed outbound posting in the same transaction. Inventory removes on-hand at the packing location with immutable negative ledger history; Sales advances shipped quantities and completes fully shipped orders. See ADR-021 and `docs/domain/shipping.md`.
 
-The V1 backend includes organization, identity, catalog, warehouse, inventory, procurement, receiving, sales and fulfillment modules. Returns, invoicing/EU VAT, external integrations and advanced analytics remain future bounded contexts. Their final boundaries must be discovered and recorded, not inferred from this list.
+The V1 backend includes organization, identity, catalog, warehouse, inventory, procurement, receiving, sales and fulfillment modules. Returns, invoicing/EU VAT, external integrations and advanced analytics remain future bounded contexts. The warehouse mobile client is a placeholder, not implemented. Redis and Kafka dependencies exist for future integration work but are not required by the synchronous V1 workflow. Their final boundaries must be discovered and recorded, not inferred from this list.
 
 The `web/` React application is a separate browser client of the public V1 API, not a Spring Modulith module. Keycloak JS handles authorization-code/PKCE login and keeps tokens in memory; TanStack Query owns server state. A read-only `/api/v1/me` projection supplies the active tenant and effective permissions for UX, while the backend enforces every operation. A read-only packing-session list supports resumable browser work. No web component accesses backend persistence directly or implements business rules authoritatively.
 
 ## Deployment direction
 
-Initially, one stateless backend deployment serves HTTPS APIs and runs domain workflows, backed by managed PostgreSQL, Redis, Kafka, and an external Keycloak installation. Horizontal application scaling is expected. Environment configuration and secrets come from the deployment platform. Kubernetes/Helm/Terraform choices remain open.
+The documented local deployment is one stateless backend, PostgreSQL, development-mode Keycloak and a static web client in loopback-bound Docker Compose. This is not an Internet-facing production deployment. A production-oriented design would need HTTPS ingress, external secrets, hardened identity and managed PostgreSQL; Kubernetes/Helm/Terraform choices remain open, not implemented V1 infrastructure.
 
 ## Persistence
 
@@ -58,13 +58,13 @@ In-process Spring application events decouple modules while retaining transactio
 
 ## Multi-tenancy
 
-The initial model is one PostgreSQL database and schema with a mandatory `tenant_id` discriminator on tenant-owned rows. `TenantContext` derives a UUID tenant identifier from an authenticated JWT claim and fails closed when required. This is scaffolding, not complete isolation.
+V1 uses one PostgreSQL database and schema with a mandatory `tenant_id` discriminator on tenant-owned rows. `TenantContext` derives a UUID tenant identifier from an authenticated JWT claim and fails closed when required. Active database membership, tenant-qualified access, constraints and cross-tenant integration tests provide defense in depth for the documented V1 flows; that is not a blanket certification of a future production deployment.
 
-Production isolation must be defense in depth: trusted tenant claims issued by the IdP; tenant-aware authorization; repository/query constraints that cannot be accidentally omitted; database constraints/indexes and possibly PostgreSQL row-level security after evaluation; automated cross-tenant integration tests; and tenant-safe audit records. Frontend filtering never provides isolation. Dedicated databases may later be introduced for enterprise tenants behind tenant-routing ports.
+Production isolation would additionally require hardened trusted claim issuance, operational review of every new data path, tenant-safe audit access and evaluation of PostgreSQL row-level security. Frontend filtering never provides isolation. Dedicated databases may later be introduced for enterprise tenants behind tenant-routing ports.
 
 ## Security
 
-The backend is an OAuth2/OIDC resource server; Keycloak is the planned identity provider. Authorization combines RBAC with fine-grained permissions and tenant membership. MFA belongs at the IdP. Production requires TLS, external secret management, least-privilege service/database identities, dependency/security scanning, safe upload quarantine/content validation, rate limiting at gateway and application boundaries, and tamper-evident audit trails. Data minimization, retention/erasure workflows, access/export, subprocessors, and breach operations must support GDPR. Use current OWASP ASVS/API Security guidance.
+The backend is an OAuth2/OIDC resource server; Keycloak is the local identity provider. Authorization combines RBAC with fine-grained permissions and tenant membership. MFA belongs at the IdP. Production requires TLS, external secret management, least-privilege service/database identities, dependency/security scanning, rate limiting at gateway and application boundaries, and tamper-evident audit operations. If uploads or personal-data processing are later introduced, their validation, retention and GDPR obligations must be designed explicitly. Use current OWASP ASVS/API Security guidance.
 
 ## APIs and integration
 
@@ -72,7 +72,7 @@ Versioned JSON REST APIs follow `docs/api/api-conventions.md`. External integrat
 
 ## Observability and logging
 
-Actuator exposes only health, info, and Prometheus endpoints. Liveness indicates process health; readiness includes essential dependencies. Micrometer is the instrumentation API and OpenTelemetry is the intended vendor-neutral trace/metric bridge. Prometheus/Grafana, Loki, and Tempo are the deployment direction, not deployed in TASK-001. Correlation IDs are propagated in `X-Correlation-ID`. Logs must exclude secrets, tokens, unnecessary PII, and sensitive tenant data; tenant identifiers may be included only where operationally necessary and access-controlled.
+Actuator exposes only health, info, and Prometheus endpoints. Liveness indicates process health; readiness includes essential dependencies. Micrometer is the instrumentation API; a vendor-neutral trace bridge and external Prometheus/Grafana/Loki/Tempo deployment remain future operational work. Correlation IDs are propagated in `X-Correlation-ID`. Logs must exclude secrets, tokens, unnecessary PII, and sensitive tenant data; tenant identifiers may be included only where operationally necessary and access-controlled.
 
 ## Scalability and extraction
 
