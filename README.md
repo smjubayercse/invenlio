@@ -1,6 +1,6 @@
 # Invenlio
 
-Production-oriented, multi-tenant order, inventory and warehouse management platform built with Java 21, Spring Boot, PostgreSQL, Keycloak and React. Independently engineered end to end as a release-verified portfolio project—not a claim of customer or Internet-facing production use.
+Multi-tenant order, inventory and warehouse management built with Java 21, Spring Boot, PostgreSQL, Keycloak and React. Invenlio connects purchasing, receiving, stock allocation and fulfillment in one transactional application.
 
 [![Backend CI](https://github.com/smjubayercse/invenlio/actions/workflows/backend-ci.yml/badge.svg)](https://github.com/smjubayercse/invenlio/actions/workflows/backend-ci.yml) [![Frontend CI](https://github.com/smjubayercse/invenlio/actions/workflows/frontend-ci.yml/badge.svg)](https://github.com/smjubayercse/invenlio/actions/workflows/frontend-ci.yml) ![Java 21](https://img.shields.io/badge/Java-21-007396) ![Spring Boot](https://img.shields.io/badge/Spring%20Boot-4.1.1-6DB33F) ![React and TypeScript](https://img.shields.io/badge/React%2019-TypeScript-3178C6) ![Version](https://img.shields.io/badge/version-v1.0.1-4054A5)
 
