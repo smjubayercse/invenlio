@@ -1,6 +1,5 @@
 import {
   AppShell,
-  Alert,
   Avatar,
   Burger,
   Button,
@@ -9,7 +8,6 @@ import {
   Paper,
   Stack,
   Text,
-  Title,
 } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
 import {
@@ -25,6 +23,7 @@ import {
 import { Link, Navigate, Route, Routes, useLocation } from "react-router";
 import { lazy, Suspense } from "react";
 import { useAuth } from "../auth/AuthProvider";
+import { SignIn } from "../auth/SignIn";
 const Dashboard = lazy(() =>
   import("../features/Dashboard").then((m) => ({ default: m.Dashboard })),
 );
@@ -116,16 +115,7 @@ export function App() {
       </Paper>
     );
   if (!auth.authenticated || !auth.me)
-    return (
-      <Paper maw={460} mx="auto" mt={120} p="xl" withBorder radius="lg">
-        <Stack>
-          <Title order={2}>Invenlio</Title>
-          <Text>Sign in to manage your operations.</Text>
-          {auth.error && <Alert color="red">{auth.error}</Alert>}
-          <Button onClick={auth.login}>Sign in</Button>
-        </Stack>
-      </Paper>
-    );
+    return <SignIn login={auth.login} error={auth.error} />;
   return (
     <AppShell
       header={{ height: 68 }}

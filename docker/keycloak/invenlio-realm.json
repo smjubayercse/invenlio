@@ -1,7 +1,7 @@
 {
   "realm": "invenlio",
   "enabled": true,
-  "displayName": "Invenlio (local development)",
+  "displayName": "Invenlio",
   "registrationAllowed": false,
   "resetPasswordAllowed": true,
   "rememberMe": true,
